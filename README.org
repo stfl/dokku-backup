@@ -1,0 +1,33 @@
+#+title: Backup Dokku Host
+
+- rsync incremental rolling backups
+- postgres database dumps
+- periodically with systemd timer
+
+* Setup as systemd job
+
+#+begin_src conf :tangle /ssh:web03.pulswerk.at|sudo:web03.pulswerk.at:/etc/systemd/system/dokku-backup.service
+[Unit]
+Descriptio=Backup dokku config and dump databases
+
+[Service]
+Type=oneshot
+ExecStart=/home/lendl/dokku-backup/backup.sh
+#+end_src
+
+#+begin_src conf :tangle /ssh:web03.pulswerk.at|sudo:web03.pulswerk.at:/etc/systemd/system/dokku-backup.timer
+[Unit]
+Description=Run dokku-backup daily at 5:00
+
+[Timer]
+OnCalendar=5:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+#+end_src
+
+#+begin_src bash :dir /ssh:web03.pulswerk.at|sudo:web03.pulswerk.at: :results verbatim silent
+systemctl daemon-reload
+systemctl enable dokku-backup.timer --now
+#+end_src
